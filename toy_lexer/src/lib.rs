@@ -1,5 +1,9 @@
+#![feature(let_chains)]
+
 use core::str::Chars;
 
+#[cfg(test)]
+mod tests;
 mod token;
 
 pub use token::{ToyToken, ToyTokenKind};
@@ -39,8 +43,22 @@ impl<'src> ToyLexer<'src> {
                 ';' => ToyTokenKind::Semicolon,
                 ':' => ToyTokenKind::Colon,
 
-                '+' => ToyTokenKind::OperatorAdd,
-                '-' => ToyTokenKind::OperatorSubtract,
+                '+' => {
+                    if let Some(c) = self.peek_char() && c.is_ascii_digit() {
+                        self.consume_integer();
+                        ToyTokenKind::LiteralInteger
+                    } else {
+                        ToyTokenKind::OperatorAdd
+                    }
+                }
+                '-' => {
+                    if let Some(c) = self.peek_char() && c.is_ascii_digit() {
+                        self.consume_integer();
+                        ToyTokenKind::LiteralInteger
+                    } else {
+                        ToyTokenKind::OperatorSubtract
+                    }
+                },
                 '*' => ToyTokenKind::OperatorMultiply,
                 '/' => {
                     if let Some('/') = self.peek_char() {
@@ -62,7 +80,7 @@ impl<'src> ToyLexer<'src> {
                     }
                 }
                 '!' => {
-                    if let Some('=') = self.chars.clone().next() {
+                    if let Some('=') = self.peek_char() {
                         self.next_char();
                         ToyTokenKind::OperatorNotEqual
                     } else {
@@ -70,7 +88,7 @@ impl<'src> ToyLexer<'src> {
                     }
                 }
                 '>' => {
-                    if let Some('=') = self.chars.clone().next() {
+                    if let Some('=') = self.peek_char(){
                         self.next_char();
                         ToyTokenKind::OperatorGreaterThanEqual
                     } else {
@@ -78,7 +96,7 @@ impl<'src> ToyLexer<'src> {
                     }
                 }
                 '<' => {
-                    if let Some('=') = self.chars.clone().next() {
+                    if let Some('=') = self.peek_char() {
                         self.next_char();
                         ToyTokenKind::OperatorLessThanEqual
                     } else {
@@ -86,13 +104,7 @@ impl<'src> ToyLexer<'src> {
                     }
                 }
                 c if c.is_ascii_alphabetic() || c == '_' => {
-                    while let Some(c) = self.peek_char() {
-                        if c.is_ascii_alphanumeric() || c == '_' {
-                            self.next_char();
-                        } else {
-                            break;
-                        }
-                    }
+                    self.consume_identifier_or_keyword();
 
                     let ident = &self.src[start..self.pos];
 
@@ -100,8 +112,19 @@ impl<'src> ToyLexer<'src> {
                         "fn" => ToyTokenKind::KeywordFn,
                         "return" => ToyTokenKind::KeywordReturn,
                         "let" => ToyTokenKind::KeywordLet,
+                        "if" => ToyTokenKind::KeywordIf,
+                        "else" => ToyTokenKind::KeywordElse,
+                        "while" => ToyTokenKind::KeywordWhile,
+
+                        "true" => ToyTokenKind::LiteralTrue,
+                        "false" => ToyTokenKind::LiteralFalse,
                         _ => ToyTokenKind::Identifier,
                     }
+                }
+
+                '0'..='9' => {
+                    self.consume_integer();
+                    ToyTokenKind::LiteralInteger
                 }
 
                 _ => return None,
@@ -125,27 +148,37 @@ impl<'src> ToyLexer<'src> {
         self.chars.clone().next()
     }
 
-    fn skip_whitespace(&mut self) {
-        while let Some(c) = self.chars.clone().next() {
-            if c.is_whitespace() {
-                self.chars.next();
-                self.pos += 1;
+    fn consume_while<F>(&mut self, mut f: F) -> usize
+    where
+        F: FnMut(char) -> bool,
+    {
+        let start = self.pos;
+
+        while let Some(c) = self.peek_char() {
+            if f(c) {
+                self.next_char();
             } else {
                 break;
             }
         }
+
+        self.pos - start
+    }
+
+    fn skip_whitespace(&mut self) {
+        self.consume_while(char::is_whitespace);
     }
 
     fn skip_line(&mut self) {
-        while let Some(c) = self.chars.clone().next() {
-            if c == '\n' {
-                self.chars.next();
-                self.pos += 1;
-                break;
-            } else {
-                self.chars.next();
-                self.pos += 1;
-            }
-        }
+        self.consume_while(|c| c != '\n');
+        self.next_char(); // consume '\n'
+    }
+
+    fn consume_identifier_or_keyword(&mut self) -> usize {
+        self.consume_while(|c| c.is_ascii_alphanumeric() || c == '_')
+    }
+
+    fn consume_integer(&mut self) -> usize {
+        self.consume_while(|c| c.is_ascii_digit())
     }
 }
