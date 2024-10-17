@@ -1,11 +1,22 @@
+use core::ops::Range;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ToyToken {
     pub kind: ToyTokenKind,
     pub start: usize,
     pub end: usize,
 }
 
+impl ToyToken {
+    pub fn range(&self) -> Range<usize> {
+        self.start..self.end
+    }
+    
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ToyTokenKind {
     /// `(`
     LeftParen,
