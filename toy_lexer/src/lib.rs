@@ -8,7 +8,7 @@ mod token;
 
 pub use token::{ToyToken, ToyTokenKind};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ToyLexer<'src> {
     src: &'src str,
     chars: Chars<'src>,
@@ -22,6 +22,10 @@ impl<'src> ToyLexer<'src> {
             chars: src.chars(),
             pos: 0,
         }
+    }
+
+    pub fn peek_token(&self) -> Option<ToyToken> {
+        self.clone().next_token()
     }
 
     pub fn next_token(&mut self) -> Option<ToyToken> {
@@ -44,7 +48,9 @@ impl<'src> ToyLexer<'src> {
                 ':' => ToyTokenKind::Colon,
 
                 '+' => {
-                    if let Some(c) = self.peek_char() && c.is_ascii_digit() {
+                    if let Some(c) = self.peek_char()
+                        && c.is_ascii_digit()
+                    {
                         self.consume_integer();
                         ToyTokenKind::LiteralInteger
                     } else {
@@ -52,13 +58,15 @@ impl<'src> ToyLexer<'src> {
                     }
                 }
                 '-' => {
-                    if let Some(c) = self.peek_char() && c.is_ascii_digit() {
+                    if let Some(c) = self.peek_char()
+                        && c.is_ascii_digit()
+                    {
                         self.consume_integer();
                         ToyTokenKind::LiteralInteger
                     } else {
                         ToyTokenKind::OperatorSubtract
                     }
-                },
+                }
                 '*' => ToyTokenKind::OperatorMultiply,
                 '/' => {
                     if let Some('/') = self.peek_char() {
@@ -88,7 +96,7 @@ impl<'src> ToyLexer<'src> {
                     }
                 }
                 '>' => {
-                    if let Some('=') = self.peek_char(){
+                    if let Some('=') = self.peek_char() {
                         self.next_char();
                         ToyTokenKind::OperatorGreaterThanEqual
                     } else {
@@ -109,6 +117,7 @@ impl<'src> ToyLexer<'src> {
                     let ident = &self.src[start..self.pos];
 
                     match ident {
+                        "extern" => ToyTokenKind::KeywordExtern,
                         "fn" => ToyTokenKind::KeywordFn,
                         "return" => ToyTokenKind::KeywordReturn,
                         "let" => ToyTokenKind::KeywordLet,

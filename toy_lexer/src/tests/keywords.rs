@@ -1,6 +1,21 @@
 use super::*;
 
 #[test]
+fn keyword_extern() {
+    let src = "extern";
+
+    let mut lexer = ToyLexer::new(src);
+    let token = lexer.next_token();
+
+    assert_eq!(token.is_some(), true);
+
+    let token = token.unwrap();
+    assert_eq!(token.kind, ToyTokenKind::KeywordExtern);
+    assert_eq!(token.start, 0);
+    assert_eq!(token.end, 6);
+}
+
+#[test]
 fn keyword_fn() {
     let src = "fn";
 

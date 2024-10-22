@@ -12,7 +12,6 @@ impl ToyToken {
     pub fn range(&self) -> Range<usize> {
         self.start..self.end
     }
-    
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -64,6 +63,8 @@ pub enum ToyTokenKind {
     /// `=`
     OperatorAssign,
 
+    /// `extern`
+    KeywordExtern,
     /// `fn`
     KeywordFn,
     /// `return`

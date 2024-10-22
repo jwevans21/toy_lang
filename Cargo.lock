@@ -9,3 +9,18 @@ version = "0.1.0"
 [[package]]
 name = "toy_lexer"
 version = "0.1.0"
+
+[[package]]
+name = "toy_parser"
+version = "0.1.0"
+dependencies = [
+ "toy_ast",
+ "toy_lexer",
+]
+
+[[package]]
+name = "toyc"
+version = "0.1.0"
+dependencies = [
+ "toy_parser",
+]

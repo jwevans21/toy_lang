@@ -4,7 +4,8 @@ pub enum ToyTopLevelExpression<'src> {
     FunctionDefinition {
         name: &'src str,
         parameters: Vec<(&'src str, ToyType<'src>)>,
-        body: Vec<ToyStatement<'src>>,
+        return_type: ToyType<'src>,
+        body: ToyStatement<'src>,
     },
     ExternalFunctionDeclaration {
         name: &'src str,
@@ -21,6 +22,7 @@ pub enum ToyType<'src> {
     Bool,
     String,
     UserDefined(&'src str),
+    Void,
 }
 
 #[derive(Debug)]
@@ -37,7 +39,7 @@ pub enum ToyStatement<'src> {
     If {
         condition: ToyExpression<'src>,
         then_branch: Box<ToyStatement<'src>>,
-        else_branch: Box<ToyStatement<'src>>,
+        else_branch: Option<Box<ToyStatement<'src>>>,
     },
     While {
         condition: ToyExpression<'src>,
@@ -45,7 +47,10 @@ pub enum ToyStatement<'src> {
     },
     Return {
         value: Option<Box<ToyExpression<'src>>>,
-    },    
+    },
+    Expression {
+        value: ToyExpression<'src>,
+    },
 }
 
 #[derive(Debug)]

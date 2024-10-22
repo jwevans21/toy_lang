@@ -1,0 +1,8 @@
+[package]
+name = "toy_parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+toy_ast = { path = "../toy_ast" }
+toy_lexer = { path = "../toy_lexer" }

@@ -1,0 +1,7 @@
+[package]
+name = "toyc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+toy_parser = { path = "../toy_parser" }
